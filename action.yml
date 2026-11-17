@@ -1,0 +1,90 @@
+name: Electron Smoke Test
+description: Launch your packaged Electron app in CI and fail the build if it crashes, opens no window, ships wrong-arch native modules, misses files, or has a broken macOS signature.
+author: Chris-garibay
+branding:
+  icon: zap
+  color: blue
+
+inputs:
+  path:
+    description: Packager output folder, .app, unpacked folder, .dmg or .AppImage. Defaults to dist/, then out/, then release/.
+    required: false
+    default: ''
+  timeout:
+    description: Seconds to wait for a window.
+    required: false
+    default: '30'
+  stay:
+    description: Seconds the app must stay up after its window opens.
+    required: false
+    default: '3'
+  expect:
+    description: Files that must be inside the app (asar), one glob per line.
+    required: false
+    default: ''
+  expect-resource:
+    description: Files that must be in resources/ (extraResources), one glob per line.
+    required: false
+    default: ''
+  args:
+    description: Extra arguments passed to the app, one per line.
+    required: false
+    default: ''
+  no-window:
+    description: Set to true for tray or background apps with no window.
+    required: false
+    default: 'false'
+  no-launch:
+    description: Set to true to run static checks only.
+    required: false
+    default: 'false'
+  notarized:
+    description: macOS. Set to true to require notarization.
+    required: false
+    default: 'false'
+  signed:
+    description: Windows. Set to true to require a valid Authenticode signature.
+    required: false
+    default: 'false'
+
+outputs:
+  report:
+    description: Path to the JSON report (codes, messages and fixes for every finding).
+    value: ${{ steps.smoke.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install a virtual display (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: command -v xvfb-run >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq xvfb)
+
+    - name: Smoke test packaged app
+      id: smoke
+      shell: bash
+      env:
+        ES_PATH: ${{ inputs.path }}
+        ES_TIMEOUT: ${{ inputs.timeout }}
+        ES_STAY: ${{ inputs.stay }}
+        ES_EXPECT: ${{ inputs.expect }}
+        ES_EXPECT_RESOURCE: ${{ inputs.expect-resource }}
+        ES_ARGS: ${{ inputs.args }}
+        ES_NO_WINDOW: ${{ inputs.no-window }}
+        ES_NO_LAUNCH: ${{ inputs.no-launch }}
+        ES_NOTARIZED: ${{ inputs.notarized }}
+        ES_SIGNED: ${{ inputs.signed }}
+      run: |
+        set -euo pipefail
+        args=(--timeout "$ES_TIMEOUT" --stay "$ES_STAY")
+        while IFS= read -r l; do [ -n "$l" ] && args+=(--expect "$l"); done <<< "$ES_EXPECT"
+        while IFS= read -r l; do [ -n "$l" ] && args+=(--expect-resource "$l"); done <<< "$ES_EXPECT_RESOURCE"
+        while IFS= read -r l; do [ -n "$l" ] && args+=(--arg "$l"); done <<< "$ES_ARGS"
+        [ "$ES_NO_WINDOW" = true ] && args+=(--no-window)
+        [ "$ES_NO_LAUNCH" = true ] && args+=(--no-launch)
+        [ "$ES_NOTARIZED" = true ] && args+=(--notarized)
+        [ "$ES_SIGNED" = true ] && args+=(--signed)
+        [ -n "$ES_PATH" ] && args+=("$ES_PATH")
+        report="$RUNNER_TEMP/electron-smoke-report.json"
+        echo "report=$report" >> "$GITHUB_OUTPUT"
+        node "$GITHUB_ACTION_PATH/bin/electron-smoke.js" --report "$report" "${args[@]}"

@@ -1,0 +1,16 @@
+# electron-smoke
+
+> Zero-dependency CLI and GitHub Action that launches a packaged Electron app (.app, .dmg, win-unpacked, linux-unpacked, .AppImage) and fails if it crashes, opens no window, fails to load its page, ships native modules for the wrong CPU architecture or compiled for Node instead of Electron, is missing files or runtime dependencies, or has an invalid macOS code signature. Each failure has a stable code and a fix.
+
+Use it after packaging an Electron app with electron-builder, Electron Forge or electron-packager, before reporting a build or release as working.
+
+- Run: `npx electron-smoke dist --json` (exit 0 = pass, 1 = fail)
+- GitHub Actions: `- uses: Chris-garibay/electron-smoke@v0` after the packaging step, once per OS
+- JSON output: `{ ok, passed, failed, warnings, findings: [{ level, code, message, fix, details }] }`. Fix every finding with level "fail".
+- Tray/background apps without windows: add `--no-window`
+- Require files: `--expect "out/preload/*.js"` (inside app.asar), `--expect-resource "bin/tool"` (extraResources)
+- The app runs with `ELECTRON_SMOKE=1` so it can skip auto-update and telemetry
+
+## Docs
+- [README](https://github.com/Chris-garibay/electron-smoke#readme): options, checks, error codes
+- [Error codes](https://github.com/Chris-garibay/electron-smoke#error-codes): every code with its fix

@@ -1,0 +1,52 @@
+{
+  "name": "electron-smoke",
+  "version": "0.1.0",
+  "description": "Smoke test a packaged Electron app (dmg, exe, AppImage, unpacked) in CI: launches it, checks a window opens, native modules match the arch and load, files and dependencies are packaged, and macOS signing is valid. Zero dependencies.",
+  "type": "module",
+  "bin": {
+    "electron-smoke": "bin/electron-smoke.js"
+  },
+  "exports": "./src/index.js",
+  "files": [
+    "bin",
+    "src",
+    "action.yml",
+    "README.md",
+    "LICENSE",
+    "llms.txt"
+  ],
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "docs": "node scripts/codes-md.js"
+  },
+  "keywords": [
+    "electron",
+    "smoke-test",
+    "electron-builder",
+    "electron-forge",
+    "packaging",
+    "ci",
+    "github-action",
+    "native-modules",
+    "asar",
+    "codesign",
+    "notarization",
+    "dmg",
+    "appimage",
+    "release",
+    "testing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chris-garibay/electron-smoke.git"
+  },
+  "homepage": "https://github.com/Chris-garibay/electron-smoke#readme",
+  "bugs": "https://github.com/Chris-garibay/electron-smoke/issues",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^45.3.3"
+  }
+}
