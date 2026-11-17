@@ -124,6 +124,9 @@ async function stop(child) {
     try {
       execFileSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
     } catch {}
+    // Windows keeps the files locked until the processes are fully gone.
+    for (let i = 0; i < 50 && child.exitCode === null && child.signalCode === null; i++) await sleep(100);
+    await sleep(500);
     return;
   }
   const kill = (sig) => {

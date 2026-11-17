@@ -155,7 +155,7 @@ async function fromAppImage(file) {
   await chmod(file, 0o755);
   await run(file, ['--appimage-extract'], { cwd: dir, maxBuffer: 64 * 1024 * 1024 });
   const app = await unpackedApp(join(dir, 'squashfs-root'));
-  const cleanup = () => rm(dir, { recursive: true, force: true }).catch(() => {});
+  const cleanup = () => rm(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }).catch(() => {});
   if (!app) {
     await cleanup();
     return [];

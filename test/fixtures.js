@@ -55,7 +55,7 @@ export async function makeApp(files, { asar = false, sign = true, resources = {}
   }
 
   if (process.platform === 'darwin' && sign) execFileSync('codesign', ['--force', '--deep', '--sign', '-', root], { stdio: 'ignore' });
-  return { path: root, cleanup: () => rm(dir, { recursive: true, force: true }) };
+  return { path: root, cleanup: () => rm(dir, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 }) };
 }
 
 /** Write an asar archive (the format src/asar.js reads). */
