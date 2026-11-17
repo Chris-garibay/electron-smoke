@@ -1,6 +1,6 @@
 # electron-smoke
 
-> Zero-dependency CLI and GitHub Action that launches a packaged Electron app (.app, .dmg, win-unpacked, linux-unpacked, .AppImage) and fails if it crashes, opens no window, fails to load its page, ships native modules for the wrong CPU architecture or compiled for Node instead of Electron, is missing files or runtime dependencies, or has an invalid macOS code signature. Each failure has a stable code and a fix.
+> Zero-dependency CLI and GitHub Action that launches a packaged Electron app (.app, .dmg, win-unpacked, linux-unpacked; .AppImage is experimental) and fails if it crashes, opens no window, fails to load its page, ships native modules for the wrong CPU architecture or compiled for Node instead of Electron, is missing files or runtime dependencies, or has an invalid macOS code signature. Each failure has a stable code and a fix.
 
 Use it after packaging an Electron app with electron-builder, Electron Forge or electron-packager, before reporting a build or release as working.
 

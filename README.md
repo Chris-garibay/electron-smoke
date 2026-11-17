@@ -6,7 +6,7 @@
 npx electron-smoke dist
 ```
 
-`electron-smoke` takes the app your packager built (an `.app`, `.dmg`, `win-unpacked`, `linux-unpacked` or `.AppImage`), launches it the way a user would, and fails the build if it crashes, never opens a window, loads a missing page, ships native modules for the wrong CPU, leaves out files, or has a macOS signature that makes the app "damaged". Every failure comes with a stable code and the fix.
+`electron-smoke` takes the app your packager built (an `.app`, `.dmg`, `win-unpacked`, `linux-unpacked`, or experimentally an `.AppImage`), launches it the way a user would, and fails the build if it crashes, never opens a window, loads a missing page, ships native modules for the wrong CPU, leaves out files, or has a macOS signature that makes the app "damaged". Every failure comes with a stable code and the fix.
 
 Zero dependencies. Works with electron-builder, Electron Forge and electron-packager. macOS, Windows and Linux.
 
@@ -80,7 +80,7 @@ Exit code `0` means every check passed, `1` means at least one failed, `2` means
 | **launch** | Starts the packaged executable with Chromium's debugging endpoint, waits for a window, keeps it running a few seconds, then reads every page's state | crashes on start, uncaught main-process errors (including the silent "JavaScript error occurred" dialog), no window, page load failures, renderer and preload crashes, `Cannot find module` |
 | **native** | Reads the CPU architecture of every `.node` module and bundled executable from its header, then loads each native module inside the packaged Electron runtime | wrong-arch builds, modules compiled for Node instead of Electron (`NODE_MODULE_VERSION`), helpers missing `+x`, natives packed inside `app.asar` |
 | **bundle** | Reads `app.asar` (or `resources/app`) | missing `main` entry, runtime dependencies left out, files you list with `--expect`, `.env`/private keys shipped, source maps and TypeScript sources shipped |
-| **signing** | macOS: `codesign --verify --deep --strict`, plus notarization and Gatekeeper with `--notarized`. Windows: Authenticode with `--signed` | unsigned or partly signed bundles that macOS reports as damaged, missing notarization, unsigned Windows builds |
+| **signing** | macOS: `codesign --verify --deep --strict`, plus notarization and Gatekeeper with `--notarized`. Windows: Authenticode with `--signed` (experimental) | unsigned or partly signed bundles that macOS reports as damaged, missing notarization, unsigned Windows builds |
 
 Universal macOS apps, apps that ship per-platform prebuilds (`prebuilds/darwin-x64/...`), VS Code-style `node_modules.asar` layouts and bundled apps (vite, webpack, esbuild) are handled, so large real-world apps pass cleanly: the static checks run against VS Code, Cursor, Postman, Arduino IDE and Claude Desktop report no false failures.
 
@@ -109,7 +109,7 @@ electron-smoke: FAILED  6 passed, 1 failed, 0 warnings
 
 | Flag | Action input | Default | Meaning |
 |---|---|---|---|
-| `[path]` | `path` | `dist`, `out`, `release` | Packager output folder, `.app`, unpacked folder, `.dmg` or `.AppImage` |
+| `[path]` | `path` | `dist`, `out`, `release` | Packager output folder, `.app`, unpacked folder, `.dmg` or `.AppImage` (experimental) |
 | `--timeout <s>` | `timeout` | `30` | Seconds to wait for a window (doubled automatically for x64 builds under Rosetta) |
 | `--stay <s>` | `stay` | `3` | Seconds the app must stay up after its window opens |
 | `--expect <glob>` | `expect` | | File that must be inside the app (`app.asar` or `resources/app`). Repeatable / one per line |
@@ -120,7 +120,7 @@ electron-smoke: FAILED  6 passed, 1 failed, 0 warnings
 | `--no-native-load` | | | Skip loading native modules in the packaged runtime |
 | `--sandbox` | | | Keep Chromium's sandbox on Linux (by default `--no-sandbox` is added, which CI containers need) |
 | `--notarized` | `notarized: true` | | macOS: require notarization and Gatekeeper approval |
-| `--signed` | `signed: true` | | Windows: require a valid Authenticode signature |
+| `--signed` | `signed: true` | | Windows: require a valid Authenticode signature (experimental) |
 | `--json` | | | Print results as JSON |
 | `--report <file>` | output `report` | | Also write the JSON results to a file |
 
@@ -217,6 +217,7 @@ Playwright's `_electron.launch()` is the right tool for testing what your UI doe
 
 ## Limitations
 
+- **Experimental:** `.AppImage` input and the Windows `--signed` check are implemented but not yet covered by CI. Everything else runs in CI on macOS, Windows and Linux against real Electron apps. Bug reports for the experimental parts are very welcome.
 - Launch checks run on the OS the app was built for; static checks run anywhere. Use a CI matrix to launch every build.
 - Windows `.exe`/`.msi` installers are not run. Point it at `win-unpacked` (electron-builder) or `out/<name>-win32-x64` (Forge).
 - An app that enforces a single instance will quit if a copy is already running on the machine. CI runners start clean.
